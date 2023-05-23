@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+
+import threading
+import traceback
+
+import os
+import sys
+
+from urllib.parse import urlparse
+
+from lib.core.settings import DESCRIPTION
+from lib.core.settings import DEFAULT_EXPORT_DIR
+from lib.parse.cmdline import cmd_line_parser
+from lib.tools.execute import execute_tools
+
+from lib.core.exceptions import NotURL
+from lib.tools.utils import uri_validator
+
+def main():
+    """ Main function of Pentest Automation when running from command line.
+    """ 
+    
+    args = cmd_line_parser()
+
+   # if not uri_validator(args.host): raise  NotURL(args.host)
+
+    domain = urlparse(args.host).netloc
+    if args.folder is None: args.folder = DEFAULT_EXPORT_DIR.format(project=domain)
+    if not os.path.exists(args.folder): os.makedirs(args.folder) 
+
+    execute_tools(args)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+    except SystemExit:
+        raise
+    except:
+        traceback.print_exc()
+    finally:
+        # Reference: http://stackoverflow.com/questions/1635080/terminate-a-multi-thread-python-program
+        if threading.active_count() > 1:
+            os._exit(getattr(os, "_exitcode", 0))
+        else:
+            sys.exit(getattr(os, "_exitcode", 0))
+else:
+    sys.exit(1)
